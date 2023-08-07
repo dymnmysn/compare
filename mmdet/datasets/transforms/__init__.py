@@ -13,7 +13,7 @@ from .loading import (FilterAnnotations, InferencerLoader, LoadAnnotations,
                       LoadEmptyAnnotations, LoadImageFromNDArray,
                       LoadMultiChannelImageFromFiles, LoadPanopticAnnotations,
                       LoadProposals, LoadTrackAnnotations)
-from .transforms import (Albu, CachedMixUp, CachedMosaic, CopyPaste, CutOut,
+from .transforms import (AddFields, Albu, CachedMixUp, CachedMosaic, CopyPaste, CutOut,
                          Expand, FixScaleResize, FixShapeResize,
                          MinIoURandomCrop, MixUp, Mosaic, Pad,
                          PhotoMetricDistortion, RandomAffine,
@@ -37,5 +37,5 @@ __all__ = [
     'LoadEmptyAnnotations', 'RandomOrder', 'CachedMosaic', 'CachedMixUp',
     'FixShapeResize', 'ProposalBroadcaster', 'InferencerLoader',
     'LoadTrackAnnotations', 'BaseFrameSample', 'UniformRefFrameSample',
-    'PackTrackInputs', 'PackReIDInputs', 'FixScaleResize', 'ResizeShortestEdge'
+    'PackTrackInputs', 'PackReIDInputs', 'FixScaleResize', 'ResizeShortestEdge', 'AddFields'
 ]

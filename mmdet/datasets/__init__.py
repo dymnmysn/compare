@@ -25,6 +25,7 @@ from .samplers import (AspectRatioBatchSampler, ClassAwareSampler,
                        TrackAspectRatioBatchSampler, TrackImgSampler)
 from .utils import get_loading_pipeline
 from .voc import VOCDataset
+from .waymo import WaymoPanopticDataset
 from .wider_face import WIDERFaceDataset
 from .xml_style import XMLDataset
 from .youtube_vis_dataset import YouTubeVISDataset
