@@ -1,6 +1,6 @@
 # R50MaskRCNN
 model = dict(
-    type='PanopticFPN',
+    type='PanopticFPNwFields',
     data_preprocessor=dict(
         type='DetDataPreprocessor',
         mean=[123.675, 116.28, 103.53],
@@ -12,7 +12,7 @@ model = dict(
         pad_seg=True,
         seg_pad_value=255),
     semantic_head=dict(
-        type='PanopticFPNHead',
+        type='PanopticFPNHead', # Bura benden wFields eklendi
         num_things_classes=8,
         num_stuff_classes=21,
         in_channels=256,
@@ -23,6 +23,18 @@ model = dict(
         conv_cfg=None,
         loss_seg=dict(
             type='CrossEntropyLoss', ignore_index=255, loss_weight=0.5)),
+    field_head=dict(
+        type='FieldHead', # Bura benden wFields eklendi
+        num_things_classes=8,
+        num_stuff_classes=21,
+        in_channels=256,
+        inner_channels=128,
+        start_level=0,
+        end_level=4,
+        norm_cfg=dict(type='GN', num_groups=32, requires_grad=True),
+        conv_cfg=None,
+        loss_seg=dict(
+            type='MSELoss', reduction='mean', loss_weight = 30)),
     panoptic_fusion_head=dict(
         type='HeuristicFusionHead',
         num_things_classes=8,
@@ -160,16 +172,16 @@ backend_args = None
 train_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args),
     dict(type='LoadPanopticAnnotations', backend_args=backend_args),
-    dict(type='AddFields'),
     dict(type='Resize', scale=(1333, 800), keep_ratio=True),
     dict(type='RandomFlip', prob=0.5),
+    #dict(type='AddFields'),
     dict(type='PackDetInputs')
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args),
     dict(type='Resize', scale=(1333, 800), keep_ratio=True),
     dict(type='LoadPanopticAnnotations', backend_args=backend_args),
-    dict(type='AddFields'),
+    #dict(type='AddFields'),
     dict(
         type='PackDetInputs',
         meta_keys=('img_id', 'img_path', 'ori_shape', 'img_shape',

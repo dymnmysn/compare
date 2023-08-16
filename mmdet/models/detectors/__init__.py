@@ -34,6 +34,7 @@ from .maskformer import MaskFormer
 from .nasfcos import NASFCOS
 from .paa import PAA
 from .panoptic_fpn import PanopticFPN
+from .panoptic_fpn_wfields import PanopticFPNwFields
 from .panoptic_two_stage_segmentor import TwoStagePanopticSegmentor
 from .point_rend import PointRend
 from .queryinst import QueryInst

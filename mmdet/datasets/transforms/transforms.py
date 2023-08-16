@@ -8,6 +8,7 @@ from typing import List, Optional, Sequence, Tuple, Union
 import cv2
 import mmcv
 import numpy
+import torch
 import numpy as np
 from mmcv.image import imresize
 from mmcv.image.geometric import _scale_size
@@ -3854,7 +3855,7 @@ class CachedMixUp(BaseTransform):
         repr_str += f'prob={self.prob})'
         return repr_str
 
-
+"""
 def getcenterfield(mask):
     if not mask.any():
         return np.zeros_like(mask)
@@ -3918,23 +3919,54 @@ def getfields(mask):
     centerfield = getcenterfield(mask)
     return np.concatenate((distancefield, centerfield[..., None]), axis=-1)
 
-thinglabels={2,3,4,5,8,9,10,11}
+thinglabels={0,1,2,3,4,5,6,7}
 #labels = gt_instance_mask_labels
 #masks = gt_instance_masks
 def getfields_classwise(masks_in,tensorlabels):
     masks = masks_in.to_ndarray()
-    labels = tensorlabels.cpu().numpy()
+    labels = tensorlabels
     dummy = getfields(masks[0])*0.0
     fields = {i:torch.from_numpy(dummy.copy()) for i in thinglabels}
     for label,mask in zip(labels,masks):
         fields[int(label)] += torch.from_numpy(getfields(mask))
     out_tensor = torch.cat(tuple(fields.values()),dim = -1).permute([2,0,1])
     return out_tensor
+"""
+#from line_profiler import LineProfiler
 
-
+import multiprocessing
 @TRANSFORMS.register_module()
 class AddFields(BaseTransform):
     """Add vector fields"""
+    @staticmethod
+    def _getfields(mask):
+        if not mask.any():
+            return torch.zeros((mask.shape[0],mask.shape[1],3))
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        positive_indices = torch.where(mask)
+        min_row, min_col = torch.min(positive_indices[0]),torch.min(positive_indices[1])
+        max_row, max_col = torch.max(positive_indices[0]),torch.max(positive_indices[1])
+        y_center, x_center = (min_col + max_col) // 2, (min_row + max_row) // 2
+        width = max_col - min_col + 1
+        height = max_row - min_row + 1
+        deviation = (width / 3, height / 3)
+        x, y = torch.meshgrid([torch.arange(0, mask.shape[0]), torch.arange(0, mask.shape[1])])
+        x, y = x.to(device), y.to(device)
+        exponent = -((x - x_center)**2 / (2 * deviation[1]**2) + (y - y_center)**2 / (2 * deviation[0]**2))
+        kernel = torch.exp(exponent)  
+
+        distances_x = (y - y_center) / (width + 1)
+        distances_y = (x - x_center) / (height + 1)
+
+        return torch.stack((distances_x*mask, distances_y*mask, kernel*mask), dim=-1)
+
+    def _getfields_classwise(self, masks, labels):
+        dummy = self._getfields(masks[0]) * 0.0
+        fields = {i: torch.zeros_like(dummy) for i in range(8)}
+        for label, mask in zip(labels, masks):
+            fields[int(label)] += self._getfields(mask)
+        out_tensor = torch.cat(tuple(fields.values()), dim=-1).permute(2,0,1)
+        return out_tensor
 
     def transform(self, results: dict) -> dict:
         """Transform function to add vector fields from instance masks from file.
@@ -3946,7 +3978,9 @@ class AddFields(BaseTransform):
             dict: The dict contains instance masks.
         """
 
-        gt_instances = results['gt_instances']
-        gt_fields = getfields_classwise(gt_instances.masks,gt_instances.labels).to(torch.float32)
+        masks = results['gt_masks']
+        labels = results['gt_bboxes_labels']
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        gt_fields = self._getfields_classwise(masks.to_tensor(device=device, dtype = torch.bool), labels)
         results['gt_fields'] = gt_fields
         return results
