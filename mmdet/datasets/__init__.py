@@ -5,6 +5,7 @@ from .base_det_dataset import BaseDetDataset
 from .base_semseg_dataset import BaseSegDataset
 from .base_video_dataset import BaseVideoDataset
 from .cityscapes import CityscapesDataset
+from .city_panoptic import CityPanopticDataset
 from .coco import CocoDataset
 from .coco_caption import CocoCaptionDataset
 from .coco_panoptic import CocoPanopticDataset
@@ -42,5 +43,5 @@ __all__ = [
     'ReIDDataset', 'YouTubeVISDataset', 'TrackAspectRatioBatchSampler',
     'ADE20KPanopticDataset', 'CocoCaptionDataset', 'RefCocoDataset',
     'BaseSegDataset', 'ADE20KSegDataset', 'CocoSegDataset',
-    'ADE20KInstanceDataset', 'iSAIDDataset'
+    'ADE20KInstanceDataset', 'iSAIDDataset', 'WaymoPanopticDataset', 'CityPanopticDataset'
 ]

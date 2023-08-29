@@ -56,8 +56,9 @@ class FieldHead(PanopticFPNHead):
         
     @staticmethod
     def _getfields(mask):
+        device = mask.device
         if not mask.any():
-            return torch.zeros((mask.shape[0],mask.shape[1],3))
+            return torch.zeros((mask.shape[0],mask.shape[1],3),device=device)
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         positive_indices = torch.where(mask)
         min_row, min_col = torch.min(positive_indices[0]),torch.min(positive_indices[1])
@@ -145,4 +146,4 @@ class FieldHead(PanopticFPNHead):
         return out
     
     def predict(self, *args, **kwargs):
-        pass
+        return self.forward(*args,**kwargs)
